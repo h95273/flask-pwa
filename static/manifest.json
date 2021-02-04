@@ -1,0 +1,13 @@
+{
+    "short_name": "Flask-PWAテスト",
+    "name": "Flask-PWAテストアプリ",
+    "display": "standalone",
+    "start_url": "/",
+    "icons": [
+        {
+            "src": "/static/img/512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
