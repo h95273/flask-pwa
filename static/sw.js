@@ -4,6 +4,7 @@ var urlsToCache = [
     '/',
     '/static/css/new.css',
     '/static/css/page.css',
+    '/static/img/192.png',
     '/static/img/512.png',
     '/static/js/app.js'
 ];
@@ -32,4 +33,3 @@ self.addEventListener('fetch', function(event) {
 self.addEventListener('activate', event => {
   event.waitUntil(self.clients.claim());
 })
-
