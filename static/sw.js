@@ -1,35 +1,58 @@
-// キャッシュしたいファイル名の指定
-var CACHE_NAME = 'flask-pwa-test-caches';
+//キャッシュの設定
+var CACHE_NAME = 'Counter-cash';
 var urlsToCache = [
     '/',
     '/static/css/new.css',
     '/static/css/page.css',
     '/static/img/192.png',
     '/static/img/512.png',
+    '/static/img/favicon.ico',
     '/static/js/app.js'
 ];
 
-//install イベントでは、指定したファイルパスをすべててキャッシュ
+//インストール
 self.addEventListener('install', function(event) {
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-        .then(function(cache) {
-            return cache.addAll(urlsToCache);
-        })
-    );
+  event.waitUntil(caches.open(CACHE_NAME).then(function(cache){
+    console.log('Opened cache');
+    return cache.addAll(urlsToCache);
+  }));
 });
 
-//fetch イベントでは、ブラウザでキャッシュしたファイルを呼び出し
+//古いキャッシュの削除
+self.addEventListener('activate', function(event) {
+  var cacheWhitelist = [CACHE_NAME, ];
+  event.waitUntil(
+    caches.keys().then(function(cacheNames) {
+      return Promise.all(cacheNames.map(function(cacheName) {
+        console.log('delete old cache');
+        if (cacheWhitelist.indexOf(cacheName) === -1){
+          return caches.delete(cacheName);
+        }
+      }));
+    })
+  );
+});
+
+//キャッシュの利用
 self.addEventListener('fetch', function(event) {
-    event.respondWith(
-        caches.match(event.request)
-        .then(function(response) {
-            return response ? response : fetch(event.request);
-        })
-    );
+  console.log('fetch');
+  event.respondWith(caches.match(event.request).then(function(response){
+    // Cache hit - return response
+    if(response){
+      return response;
+    }
+    var fetchRequest = event.request.clone();
+    return fetch(fetchRequest).then(function(response){
+      // Check if we received a valid response
+      if(!response || response.status !== 200 || response.type !== 'basic') {
+        return response;
+      }
+      var responseToCache = response.clone();
+      caches.open(CACHE_NAME).then(function(cache) {
+        cache.put(event.request, responseToCache);
+      });
+      return response;
+    }));
+  }));
 });
 
-//activate イベントによって直ちにService Workerがブラウザ上のリソースを操作できるようにする
-self.addEventListener('activate', event => {
-  event.waitUntil(self.clients.claim());
-})
